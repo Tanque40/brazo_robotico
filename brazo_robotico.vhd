@@ -8,502 +8,496 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-
-
-entity main is
+entity brazo_robotico is
 
 port
 (
 	--in
-	clk: in std_logic;
-	psStart: in std_logic;
-	psStop: in std_logic;
+	reloj: in std_logic;
+	btInicio: in std_logic;
+	btPara: in std_logic;
 	dip: in std_logic_vector(2 downto 0);
 	--out
-	servo1, servo2, servo3, servo4: out std_logic;	-- 
-	SSEG_sc:out std_logic_vector(6 downto 0)			-- 7 Segmentos
+	servomotor1, servomotor2, servomotor3, servomotor4: out std_logic;	-- 
+	SSEG_sc:out std_logic_vector(6 downto 0)			
 );
-end main;
+end brazo_robotico;
 
-architecture arch of main is
+architecture arch of brazo_robotico is
 
-	type Estados is (EdoReset, Idle, Edo1, Edo2,Edo3, Edo4, Edo5, Edo6, Edo7, Edo8, AumentaContador); -- AumentaContador para aumentar el valor del contador de 7 segmentos
-	signal Edo: Estados;
+	type Estados is (EstadoR, EstadoIdle, Estado1, Estado2, Estado3, Estado4, Estado5, Estado6, Estado7, Estado8, MasCont); 
+	signal Estado: Estados;
 
-	----- Señales temporales para el contador de eventos
-	signal contEventos: unsigned(2 downto 0):= (others => '0');
+    -- ST contador
+	signal contadorEventos: unsigned(2 downto 0):= (others => '0');
 	signal MaxValue: unsigned(2 downto 0):= (others => '0');
 
-	----- Señales para el temporalizador
+	-- ST
 	signal contTiempo: unsigned(27 downto 0):= (others => '0');
 	constant valMaxTime: unsigned(27 downto 0):= X"8F0D180";
 
-	----- Señales temporales para los PWMs
+    -- ST
 	constant periodoPWM: unsigned(19 downto 0):= X"F4240";
-	signal contPeriodoPWM: unsigned(19 downto 0):= (others => '0');
-	-- Constantes de PWM;
-	constant PWM1_EdoIdle: unsigned(19 downto 0):= X"124F8";
-	constant PWM2_EdoIdle: unsigned(19 downto 0):= X"124F8";
-	constant PWM3_EdoIdle: unsigned(19 downto 0):= X"124F8";
-	constant PWM4_EdoIdle: unsigned(19 downto 0):= X"124F8";
-
-	constant PWM1_Edo1: unsigned(19 downto 0):= X"0C350";
-	constant PWM2_Edo1: unsigned(19 downto 0):= X"124F8";
-	constant PWM3_Edo1: unsigned(19 downto 0):= X"124F8";
-	constant PWM4_Edo1: unsigned(19 downto 0):= X"124F8";
-
-	constant PWM1_Edo2: unsigned(19 downto 0):= X"0C350";
-	constant PWM2_Edo2: unsigned(19 downto 0):= X"0C350";
-	constant PWM3_Edo2: unsigned(19 downto 0):= X"124F8";
-	constant PWM4_Edo2: unsigned(19 downto 0):= X"124F8";
+	signal contadorPerPWM: unsigned(19 downto 0):= (others => '0');
 	
-	constant PWM1_Edo3: unsigned(19 downto 0):= X"0C350";
-	constant PWM2_Edo3: unsigned(19 downto 0):= X"0C350";
-	constant PWM3_Edo3: unsigned(19 downto 0):= X"0C350";
-	constant PWM4_Edo3: unsigned(19 downto 0):= X"124F8";
-	
-	constant PWM1_Edo4: unsigned(19 downto 0):= X"0C350";
-	constant PWM2_Edo4: unsigned(19 downto 0):= X"0C350";
-	constant PWM3_Edo4: unsigned(19 downto 0):= X"0C350";
-	constant PWM4_Edo4: unsigned(19 downto 0):= X"0C350";
-	
-	constant PWM1_Edo5: unsigned(19 downto 0):= X"0C350";
-	constant PWM2_Edo5: unsigned(19 downto 0):= X"0C350";
-	constant PWM3_Edo5: unsigned(19 downto 0):= X"0C350";
-	constant PWM4_Edo5: unsigned(19 downto 0):= X"124F8";
-	
-	constant PWM1_Edo6: unsigned(19 downto 0):= X"0C350";
-	constant PWM2_Edo6: unsigned(19 downto 0):= X"0C350";
-	constant PWM3_Edo6: unsigned(19 downto 0):= X"124F8";
-	constant PWM4_Edo6: unsigned(19 downto 0):= X"124F8";
-	
-	constant PWM1_Edo7: unsigned(19 downto 0):= X"0C350";
-	constant PWM2_Edo7: unsigned(19 downto 0):= X"124F8";
-	constant PWM3_Edo7: unsigned(19 downto 0):= X"124F8";
-	constant PWM4_Edo7: unsigned(19 downto 0):= X"124F8";
-	
-	constant PWM1_Edo8: unsigned(19 downto 0):= X"124F8";
-	constant PWM2_Edo8: unsigned(19 downto 0):= X"124F8";
-	constant PWM3_Edo8: unsigned(19 downto 0):= X"124F8";
-	constant PWM4_Edo8: unsigned(19 downto 0):= X"124F8";
+    -- PWM;
+	constant PWM1_EstadoEstadoIdle: unsigned(19 downto 0):= X"124F8";
+	constant PWM2_EstadoEstadoIdle: unsigned(19 downto 0):= X"124F8";
+	constant PWM3_EstadoEstadoIdle: unsigned(19 downto 0):= X"124F8";
+	constant PWM4_EstadoEstadoIdle: unsigned(19 downto 0):= X"124F8";
 
+	constant PWM1_Estado1: unsigned(19 downto 0):= X"0C350";
+	constant PWM2_Estado1: unsigned(19 downto 0):= X"124F8";
+	constant PWM3_Estado1: unsigned(19 downto 0):= X"124F8";
+	constant PWM4_Estado1: unsigned(19 downto 0):= X"124F8";
 
+	constant PWM1_Estado2: unsigned(19 downto 0):= X"0C350";
+	constant PWM2_Estado2: unsigned(19 downto 0):= X"0C350";
+	constant PWM3_Estado2: unsigned(19 downto 0):= X"124F8";
+	constant PWM4_Estado2: unsigned(19 downto 0):= X"124F8";
+	
+	constant PWM1_Estado3: unsigned(19 downto 0):= X"0C350";
+	constant PWM2_Estado3: unsigned(19 downto 0):= X"0C350";
+	constant PWM3_Estado3: unsigned(19 downto 0):= X"0C350";
+	constant PWM4_Estado3: unsigned(19 downto 0):= X"124F8";
+	
+	constant PWM1_Estado4: unsigned(19 downto 0):= X"0C350";
+	constant PWM2_Estado4: unsigned(19 downto 0):= X"0C350";
+	constant PWM3_Estado4: unsigned(19 downto 0):= X"0C350";
+	constant PWM4_Estado4: unsigned(19 downto 0):= X"0C350";
+	
+	constant PWM1_Estado5: unsigned(19 downto 0):= X"0C350";
+	constant PWM2_Estado5: unsigned(19 downto 0):= X"0C350";
+	constant PWM3_Estado5: unsigned(19 downto 0):= X"0C350";
+	constant PWM4_Estado5: unsigned(19 downto 0):= X"124F8";
+	
+	constant PWM1_Estado6: unsigned(19 downto 0):= X"0C350";
+	constant PWM2_Estado6: unsigned(19 downto 0):= X"0C350";
+	constant PWM3_Estado6: unsigned(19 downto 0):= X"124F8";
+	constant PWM4_Estado6: unsigned(19 downto 0):= X"124F8";
+	
+	constant PWM1_Estado7: unsigned(19 downto 0):= X"0C350";
+	constant PWM2_Estado7: unsigned(19 downto 0):= X"124F8";
+	constant PWM3_Estado7: unsigned(19 downto 0):= X"124F8";
+	constant PWM4_Estado7: unsigned(19 downto 0):= X"124F8";
+	
+	constant PWM1_Estado8: unsigned(19 downto 0):= X"124F8";
+	constant PWM2_Estado8: unsigned(19 downto 0):= X"124F8";
+	constant PWM3_Estado8: unsigned(19 downto 0):= X"124F8";
+	constant PWM4_Estado8: unsigned(19 downto 0):= X"124F8";
 
-begin
+    begin
 
-	--estados
-	Maquina: process(clk, psStart, psStop, dip)
+	--7 estados
+	Maquina: process(reloj, btInicio, btPara, dip)
 	begin
-		if(rising_edge(clk))then
-			case(Edo) is
-				when EdoReset =>
-					Edo <= Idle;
+		if(rising_edge(reloj))then
+			case(Estado) is
+				when EstadoR =>
+					Estado <= EstadoIdle;
 
-				when idle =>
-					if(contEventos >= MaxValue)then
-						Edo <= EdoReset;
+				when EstadoIdle =>
+					if(contadorEventos >= MaxValue)then
+						Estado <= EstadoR;
 					else
-						if(psStart = '0')then
-							Edo <= Edo1;
+						if(btInicio = '0')then
+							Estado <= Estado1;
 						else
-							Edo <= idle;
+							Estado <= EstadoIdle;
 						end if;
 					end if;
 					contTiempo <= (others => '0');
-					--edo1
-				when Edo1 =>
-					if(psStop = '0')then
-						Edo <= EdoReset;
+					-- Primer estado
+				when Estado1 =>
+					if(btPara = '0')then
+						Estado <= EstadoR;
 					else
 						if(contTiempo <= valMaxTime)then
 							contTiempo <= contTiempo + 1;
-							Edo <= Edo1;
+							Estado <= Estado1;
 						else
 							contTiempo <= (others => '0');
-							Edo <= Edo2;
+							Estado <= Estado2;
 						end if;
 					end if;
-					--edo2
-				when Edo2 =>
-					if(psStop = '0')then
-						Edo <= EdoReset;
+					--Estado2
+				when Estado2 =>
+					if(btPara = '0')then
+						Estado <= EstadoR;
 					else						
 						if(contTiempo <= valMaxTime)then
 							contTiempo <= contTiempo + 1;
-							Edo <= Edo2;
+							Estado <= Estado2;
 						else
 							contTiempo <= (others => '0');
-							Edo <= Edo3;--cambiaria a edo3 y el final seria AumentaContador
+							Estado <= Estado3;
 						end if;
 					end if;
-					--edo3
-				when Edo3 =>
-					if(psStop = '0')then
-						Edo <= EdoReset;
+					--Estado3
+				when Estado3 =>
+					if(btPara = '0')then
+						Estado <= EstadoR;
 					else
 						if(contTiempo <= valMaxTime)then
 							contTiempo <= contTiempo + 1;
-							Edo <= Edo3;
+							Estado <= Estado3;
 						else
 							contTiempo <= (others => '0');
-							Edo <= Edo4;
+							Estado <= Estado4;
 						end if;
 					end if;
-					--edo4
-				when Edo4 =>
-					if(psStop = '0')then
-						Edo <= EdoReset;
+					--Estado4
+				when Estado4 =>
+					if(btPara = '0')then
+						Estado <= EstadoR;
 					else
 						if(contTiempo <= valMaxTime)then
 							contTiempo <= contTiempo + 1;
-							Edo <= Edo4;
+							Estado <= Estado4;
 						else
 							contTiempo <= (others => '0');
-							Edo <= Edo5;
+							Estado <= Estado5;
 						end if;
 					end if;
-				--edo5
-				when Edo5 =>
-					if(psStop = '0')then
-						Edo <= EdoReset;
+				--Estado5
+				when Estado5 =>
+					if(btPara = '0')then
+						Estado <= EstadoR;
 					else
 						if(contTiempo <= valMaxTime)then
 							contTiempo <= contTiempo + 1;
-							Edo <= Edo5;
+							Estado <= Estado5;
 						else
 							contTiempo <= (others => '0');
-							Edo <= Edo6;
+							Estado <= Estado6;
 						end if;
 					end if;
-
-				--edo6
-				when Edo6 =>
-					if(psStop = '0')then
-						Edo <= EdoReset;
+				--Estado6
+				when Estado6 =>
+					if(btPara = '0')then
+						Estado <= EstadoR;
 					else
 						if(contTiempo <= valMaxTime)then
 							contTiempo <= contTiempo + 1;
-							Edo <= Edo6;
+							Estado <= Estado6;
 						else
 							contTiempo <= (others => '0');
-							Edo <= Edo7;
+							Estado <= Estado7;
 						end if;
 					end if;
-				--edo7
-				when Edo7 =>
-					if(psStop = '0')then
-						Edo <= EdoReset;
+				--Estado7
+				when Estado7 =>
+					if(btPara = '0')then
+						Estado <= EstadoR;
 					else
 						if(contTiempo <= valMaxTime)then
 							contTiempo <= contTiempo + 1;
-							Edo <= Edo7;
+							Estado <= Estado7;
 						else
 							contTiempo <= (others => '0');
-							Edo <= Edo8;
+							Estado <= Estado8;
 						end if;
 					end if;
-				--edo8
-				when Edo8 =>
-					if(psStop = '0')then
-						Edo <= EdoReset;
+				--Estado8
+				when Estado8 =>
+					if(btPara = '0')then
+						Estado <= EstadoR;
 					else
 						if(contTiempo <= valMaxTime)then
 							contTiempo <= contTiempo + 1;
-							Edo <= Edo8;
+							Estado <= Estado8;
 						else
 							contTiempo <= (others => '0');
-							Edo <= AumentaContador;
+							Estado <= MasCont;
 						end if;
 					end if;
-					--Aumenta Contador
-				when AumentaContador =>
-					Edo <= Idle;
+					--Sumamos uno al contador
+				when MasCont =>
+					Estado <= EstadoIdle;
 				end case;
 			end if;
 			
 		end process;
 	
-	process(MaxValue, Edo)
+	process(MaxValue, Estado)
 	begin
-		if(Edo <= EdoReset)then
+		if(Estado <= EstadoR)then
 			MaxValue <= unsigned(dip);
 		else
 			MaxValue <= MaxValue;
 		end if;
 	end process;
 
-	process(clk, Edo, contEventos)
+	process(reloj, Estado, contadorEventos)
 	begin
-		if(rising_edge(clk))then
-			if(Edo = EdoReset)then
-				contEventos <= unsigned(dip);
-			elsif(Edo = AumentaContador)then
-				contEventos <= contEventos + 1;
+		if(rising_edge(reloj))then
+			if(Estado = EstadoR)then
+				contadorEventos <= unsigned(dip);
+			elsif(Estado = MasCont)then
+				contadorEventos <= contadorEventos + 1;
 			else
-				contEventos <= contEventos;
+				contadorEventos <= contadorEventos;
 			end if;
 		end if;
 	end process;
 
-	----- Creación del PWM; Periodo
-	process(clk, Edo, contPeriodoPWM)
+	-- Crea Periodo
+	process(reloj, Estado, contadorPerPWM)
 	begin
-		if(rising_edge(clk))then
+		if(rising_edge(reloj))then
 			-- Primer ServoMotor
-			if(edo = EdoReset)then
-				contPeriodoPWM <= (others => '0');
+			if(Estado = EstadoR)then
+				contadorPerPWM <= (others => '0');
 			else
-				if(contPeriodoPWM < periodoPWM)then
-					contPeriodoPWM <= contPeriodoPWM + 1;
+				if(contadorPerPWM < periodoPWM)then
+					contadorPerPWM <= contadorPerPWM + 1;
 				else
-					contPeriodoPWM <= (others => '0');
+					contadorPerPWM <= (others => '0');
 				end if;
 			end if;
 		end if;
 	end process;
 
-	-- Creación del PWM: Señal
-	process(clk, Edo, contPeriodoPWM)
+	-- Crea Señal
+	process(reloj, Estado, contadorPerPWM)
 	begin
-		if(rising_edge(clk))then
-			if(Edo = Idle)then
-				if(contPeriodoPWM <= PWM1_EdoIdle)then
-					servo1 <= '1';
+		if(rising_edge(reloj))then
+			if(Estado = EstadoIdle)then
+				if(contadorPerPWM <= PWM1_EstadoEstadoIdle)then
+					servomotor1 <= '1';
 				else
-					servo1 <= '0';
+					servomotor1 <= '0';
 				end if;
-				if(contPeriodoPWM <= PWM2_EdoIdle)then
-					servo2 <= '1';
+				if(contadorPerPWM <= PWM2_EstadoEstadoIdle)then
+					servomotor2 <= '1';
 				else
-					servo2 <= '0';
+					servomotor2 <= '0';
 				end if;
-				if(contPeriodoPWM <= PWM3_EdoIdle)then
-					servo3 <= '1';
+				if(contadorPerPWM <= PWM3_EstadoEstadoIdle)then
+					servomotor3 <= '1';
 				else
-					servo3 <= '0';
+					servomotor3 <= '0';
 				end if;
-				if(contPeriodoPWM <= PWM4_EdoIdle)then
-					servo4 <= '1';
+				if(contadorPerPWM <= PWM4_EstadoEstadoIdle)then
+					servomotor4 <= '1';
 				else
-					servo4 <= '0';
+					servomotor4 <= '0';
 				end if;
-				---edo1
-			elsif(Edo = Edo1)then
-				if(contPeriodoPWM <= PWM1_Edo1)then
-					servo1 <= '1';
+				--
+			elsif(Estado = Estado1)then
+				if(contadorPerPWM <= PWM1_Estado1)then
+					servomotor1 <= '1';
 				else
-					servo1 <= '0';
+					servomotor1 <= '0';
 				end if;
-				if(contPeriodoPWM <= PWM2_Edo1)then
-					servo2 <= '1';
+				if(contadorPerPWM <= PWM2_Estado1)then
+					servomotor2 <= '1';
 				else
-					servo2 <= '0';
+					servomotor2 <= '0';
 				end if;
-				if(contPeriodoPWM <= PWM3_Edo1)then
-					servo3 <= '1';
+				if(contadorPerPWM <= PWM3_Estado1)then
+					servomotor3 <= '1';
 				else
-					servo3 <= '0';
+					servomotor3 <= '0';
 				end if;
-				if(contPeriodoPWM <= PWM4_Edo1)then
-					servo4 <= '1';
+				if(contadorPerPWM <= PWM4_Estado1)then
+					servomotor4 <= '1';
 				else
-					servo4 <= '0';
+					servomotor4 <= '0';
 				end if;
-				---------edo2
-			elsif(Edo = Edo2)then
-				if(contPeriodoPWM <= PWM1_Edo2)then
-					servo1 <= '1';
+				--Estado2
+			elsif(Estado = Estado2)then
+				if(contadorPerPWM <= PWM1_Estado2)then
+					servomotor1 <= '1';
 				else
-					servo1 <= '0';
+					servomotor1 <= '0';
 				end if;
-				if(contPeriodoPWM <= PWM2_Edo2)then
-					servo2 <= '1';
+				if(contadorPerPWM <= PWM2_Estado2)then
+					servomotor2 <= '1';
 				else
-					servo2 <= '0';
+					servomotor2 <= '0';
 				end if;
-				if(contPeriodoPWM <= PWM3_Edo2)then
-					servo3 <= '1';
+				if(contadorPerPWM <= PWM3_Estado2)then
+					servomotor3 <= '1';
 				else
-					servo3 <= '0';
+					servomotor3 <= '0';
 				end if;
-				if(contPeriodoPWM <= PWM4_Edo2)then
-					servo4 <= '1';
+				if(contadorPerPWM <= PWM4_Estado2)then
+					servomotor4 <= '1';
 				else
-					servo4 <= '0';
+					servomotor4 <= '0';
 				end if;
-				------edo3
-			elsif(Edo = Edo3)then
-				if(contPeriodoPWM <= PWM1_Edo3)then
-					servo1 <= '1';
+				--Estado3
+			elsif(Estado = Estado3)then
+				if(contadorPerPWM <= PWM1_Estado3)then
+					servomotor1 <= '1';
 				else
-					servo1 <= '0';
+					servomotor1 <= '0';
 				end if;
-				if(contPeriodoPWM <= PWM2_Edo3)then
-					servo2 <= '1';
+				if(contadorPerPWM <= PWM2_Estado3)then
+					servomotor2 <= '1';
 				else
-					servo2 <= '0';
+					servomotor2 <= '0';
 				end if;
-				if(contPeriodoPWM <= PWM3_Edo3)then
-					servo3 <= '1';
+				if(contadorPerPWM <= PWM3_Estado3)then
+					servomotor3 <= '1';
 				else
-					servo3 <= '0';
+					servomotor3 <= '0';
 				end if;
-				if(contPeriodoPWM <= PWM4_Edo3)then
-					servo4 <= '1';
+				if(contadorPerPWM <= PWM4_Estado3)then
+					servomotor4 <= '1';
 				else
-					servo4 <= '0';
+					servomotor4 <= '0';
 				end if;
 			--ed04
-			elsif(Edo = Edo4)then
-				if(contPeriodoPWM <= PWM1_Edo4)then
-					servo1 <= '1';
+			elsif(Estado = Estado4)then
+				if(contadorPerPWM <= PWM1_Estado4)then
+					servomotor1 <= '1';
 				else
-					servo1 <= '0';
+					servomotor1 <= '0';
 				end if;
-				if(contPeriodoPWM <= PWM2_Edo4)then
-					servo2 <= '1';
+				if(contadorPerPWM <= PWM2_Estado4)then
+					servomotor2 <= '1';
 				else
-					servo2 <= '0';
+					servomotor2 <= '0';
 				end if;
-				if(contPeriodoPWM <= PWM3_Edo4)then
-					servo3 <= '1';
+				if(contadorPerPWM <= PWM3_Estado4)then
+					servomotor3 <= '1';
 				else
-					servo3 <= '0';
+					servomotor3 <= '0';
 				end if;
-				if(contPeriodoPWM <= PWM4_Edo4)then
-					servo4 <= '1';
+				if(contadorPerPWM <= PWM4_Estado4)then
+					servomotor4 <= '1';
 				else
-					servo4 <= '0';
+					servomotor4 <= '0';
 				end if;
-			--edo5
-			elsif(Edo = Edo5)then
-				if(contPeriodoPWM <= PWM1_Edo5)then
-					servo1 <= '1';
+			--Estado5
+			elsif(Estado = Estado5)then
+				if(contadorPerPWM <= PWM1_Estado5)then
+					servomotor1 <= '1';
 				else
-					servo1 <= '0';
+					servomotor1 <= '0';
 				end if;
-				if(contPeriodoPWM <= PWM2_Edo5)then
-					servo2 <= '1';
+				if(contadorPerPWM <= PWM2_Estado5)then
+					servomotor2 <= '1';
 				else
-					servo2 <= '0';
+					servomotor2 <= '0';
 				end if;
-				if(contPeriodoPWM <= PWM3_Edo5)then
-					servo3 <= '1';
+				if(contadorPerPWM <= PWM3_Estado5)then
+					servomotor3 <= '1';
 				else
-					servo3 <= '0';
+					servomotor3 <= '0';
 				end if;
-				if(contPeriodoPWM <= PWM4_Edo5)then
-					servo4 <= '1';
+				if(contadorPerPWM <= PWM4_Estado5)then
+					servomotor4 <= '1';
 				else
-					servo4 <= '0';
+					servomotor4 <= '0';
 				end if;
-			--edo6
-			elsif(Edo = Edo6)then
-				if(contPeriodoPWM <= PWM1_Edo6)then
-					servo1 <= '1';
+			--Estado6
+			elsif(Estado = Estado6)then
+				if(contadorPerPWM <= PWM1_Estado6)then
+					servomotor1 <= '1';
 				else
-					servo1 <= '0';
+					servomotor1 <= '0';
 				end if;
-				if(contPeriodoPWM <= PWM2_Edo6)then
-					servo2 <= '1';
+				if(contadorPerPWM <= PWM2_Estado6)then
+					servomotor2 <= '1';
 				else
-					servo2 <= '0';
+					servomotor2 <= '0';
 				end if;
-				if(contPeriodoPWM <= PWM3_Edo6)then
-					servo3 <= '1';
+				if(contadorPerPWM <= PWM3_Estado6)then
+					servomotor3 <= '1';
 				else
-					servo3 <= '0';
+					servomotor3 <= '0';
 				end if;
-				if(contPeriodoPWM <= PWM4_Edo6)then
-					servo4 <= '1';
+				if(contadorPerPWM <= PWM4_Estado6)then
+					servomotor4 <= '1';
 				else
-					servo4 <= '0';
+					servomotor4 <= '0';
 				end if;
-			--edo7
-			elsif(Edo = Edo7)then
-				if(contPeriodoPWM <= PWM1_Edo7)then
-					servo1 <= '1';
+			--Estado7
+			elsif(Estado = Estado7)then
+				if(contadorPerPWM <= PWM1_Estado7)then
+					servomotor1 <= '1';
 				else
-					servo1 <= '0';
+					servomotor1 <= '0';
 				end if;
-				if(contPeriodoPWM <= PWM2_Edo7)then
-					servo2 <= '1';
+				if(contadorPerPWM <= PWM2_Estado7)then
+					servomotor2 <= '1';
 				else
-					servo2 <= '0';
+					servomotor2 <= '0';
 				end if;
-				if(contPeriodoPWM <= PWM3_Edo7)then
-					servo3 <= '1';
+				if(contadorPerPWM <= PWM3_Estado7)then
+					servomotor3 <= '1';
 				else
-					servo3 <= '0';
+					servomotor3 <= '0';
 				end if;
-				if(contPeriodoPWM <= PWM4_Edo7)then
-					servo4 <= '1';
+				if(contadorPerPWM <= PWM4_Estado7)then
+					servomotor4 <= '1';
 				else
-					servo4 <= '0';
+					servomotor4 <= '0';
 				end if;
-			--edo8
-			elsif(Edo = Edo8)then
-				if(contPeriodoPWM <= PWM1_Edo8)then
-					servo1 <= '1';
+			--Estado8
+			elsif(Estado = Estado8)then
+				if(contadorPerPWM <= PWM1_Estado8)then
+					servomotor1 <= '1';
 				else
-					servo1 <= '0';
+					servomotor1 <= '0';
 				end if;
-				if(contPeriodoPWM <= PWM2_Edo8)then
-					servo2 <= '1';
+				if(contadorPerPWM <= PWM2_Estado8)then
+					servomotor2 <= '1';
 				else
-					servo2 <= '0';
+					servomotor2 <= '0';
 				end if;
-				if(contPeriodoPWM <= PWM3_Edo8)then
-					servo3 <= '1';
+				if(contadorPerPWM <= PWM3_Estado8)then
+					servomotor3 <= '1';
 				else
-					servo3 <= '0';
+					servomotor3 <= '0';
 				end if;
-				if(contPeriodoPWM <= PWM4_Edo8)then
-					servo4 <= '1';
+				if(contadorPerPWM <= PWM4_Estado8)then
+					servomotor4 <= '1';
 				else
-					servo4 <= '0';
+					servomotor4 <= '0';
 				end if;
-			end if;--if general
-		end if;--rising edge
+			end if;
+		end if;
 	end process;
 
-	--'0' & contEventos
-	
-	process(contEventos)--hago el cambio al BCD de 7 segmentos
+    --ContadorEvecntos	
+	process(contadorEventos)
 	begin
-	 if(contEventos="000")then
+	 if(contadorEventos="000")then
 	 SSEG_SC<="1111110";
 	 end if; --0
 	 
-	 if(contEventos="001")then
+	 if(contadorEventos="001")then
 	 SSEG_SC<="0110000";
 	 end if;--1
 	 
 	 
-	 if(contEventos="010")then
+	 if(contadorEventos="010")then
 	 SSEG_SC<="1101101";
 	 end if;--2
 	 
-	 if(contEventos="011")then
+	 if(contadorEventos="011")then
 	 SSEG_SC<="1111001";
 	 end if;--3
 	 
-	 if(contEventos="100")then
+	 if(contadorEventos="100")then
 	 SSEG_SC<="0110011";
 	 end if;--4
 	 
-	 if(contEventos="101")then
+	 if(contadorEventos="101")then
 	 SSEG_SC<="1011011";
 	 end if;--5
 	 
-	 if(contEventos="110")then
+	 if(contadorEventos="110")then
 	 SSEG_SC<="1011111";
 	 end if;--6
 	 
-	 if(contEventos="111")then
+	 if(contadorEventos="111")then
 	 SSEG_SC<="1110000";
 	 end if;--7
-	end process;--llega nada más hasta 7 porque es el valor maximo con un dip de 3 posiciones.
-	
+	end process;
+end arch;
 
-end arch;%          

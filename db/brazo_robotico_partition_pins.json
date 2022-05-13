@@ -1,0 +1,77 @@
+{
+	"partitions" : [
+		{
+			"name" : "Top",
+			"pins" : [
+				{
+					"name" : "servomotor1",
+					"strict" : false
+				},
+				{
+					"name" : "servomotor2",
+					"strict" : false
+				},
+				{
+					"name" : "servomotor3",
+					"strict" : false
+				},
+				{
+					"name" : "servomotor4",
+					"strict" : false
+				},
+				{
+					"name" : "SSEG_sc[0]",
+					"strict" : false
+				},
+				{
+					"name" : "SSEG_sc[1]",
+					"strict" : false
+				},
+				{
+					"name" : "SSEG_sc[2]",
+					"strict" : false
+				},
+				{
+					"name" : "SSEG_sc[3]",
+					"strict" : false
+				},
+				{
+					"name" : "SSEG_sc[4]",
+					"strict" : false
+				},
+				{
+					"name" : "SSEG_sc[5]",
+					"strict" : false
+				},
+				{
+					"name" : "SSEG_sc[6]",
+					"strict" : false
+				},
+				{
+					"name" : "reloj",
+					"strict" : false
+				},
+				{
+					"name" : "dip[1]",
+					"strict" : false
+				},
+				{
+					"name" : "dip[2]",
+					"strict" : false
+				},
+				{
+					"name" : "dip[0]",
+					"strict" : false
+				},
+				{
+					"name" : "btPara",
+					"strict" : false
+				},
+				{
+					"name" : "btInicio",
+					"strict" : false
+				}
+			]
+		}
+	]
+}

@@ -1,0 +1,14 @@
+Analysis & Synthesis Status : Successful - Fri May 13 17:27:31 2022
+Quartus Prime Version : 21.1.0 Build 842 10/21/2021 SJ Lite Edition
+Revision Name : brazo_robotico
+Top-level Entity Name : brazo_robotico
+Family : Cyclone IV E
+Total logic elements : 132
+    Total combinational functions : 132
+    Dedicated logic registers : 66
+Total registers : 66
+Total pins : 17
+Total virtual pins : 0
+Total memory bits : 0
+Embedded Multiplier 9-bit elements : 0
+Total PLLs : 0

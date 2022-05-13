@@ -55,3 +55,25 @@ set_global_assignment -name EDA_GENERATE_FUNCTIONAL_NETLIST OFF -section_id eda_
 set_global_assignment -name EDA_GENERATE_FUNCTIONAL_NETLIST OFF -section_id eda_board_design_symbol
 set_global_assignment -name EDA_GENERATE_FUNCTIONAL_NETLIST OFF -section_id eda_board_design_signal_integrity
 set_global_assignment -name EDA_GENERATE_FUNCTIONAL_NETLIST OFF -section_id eda_board_design_boundary_scan
+set_global_assignment -name VHDL_FILE brazo_robotico.vhd
+set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id Top
+set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id Top
+set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
+set_location_assignment PIN_R8 -to reloj
+set_location_assignment PIN_M1 -to dip[0]
+set_location_assignment PIN_T8 -to dip[1]
+set_location_assignment PIN_B9 -to dip[2]
+set_location_assignment PIN_A15 -to SSEG_sc[0]
+set_location_assignment PIN_A13 -to SSEG_sc[1]
+set_location_assignment PIN_B13 -to SSEG_sc[2]
+set_location_assignment PIN_A11 -to SSEG_sc[3]
+set_location_assignment PIN_D1 -to SSEG_sc[4]
+set_location_assignment PIN_F3 -to SSEG_sc[5]
+set_location_assignment PIN_B1 -to SSEG_sc[6]
+set_location_assignment PIN_J15 -to btInicio
+set_location_assignment PIN_E1 -to btPara
+set_location_assignment PIN_D3 -to servomotor1
+set_location_assignment PIN_C3 -to servomotor2
+set_location_assignment PIN_A2 -to servomotor3
+set_location_assignment PIN_A3 -to servomotor4
+set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top

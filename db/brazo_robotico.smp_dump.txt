@@ -1,0 +1,14 @@
+
+State Machine - |brazo_robotico|Estado
+Name Estado.MasCont Estado.Estado8 Estado.Estado7 Estado.Estado6 Estado.Estado5 Estado.Estado4 Estado.Estado3 Estado.Estado2 Estado.Estado1 Estado.EstadoIdle Estado.EstadoR 
+Estado.EstadoR 0 0 0 0 0 0 0 0 0 0 0 
+Estado.EstadoIdle 0 0 0 0 0 0 0 0 0 1 1 
+Estado.Estado1 0 0 0 0 0 0 0 0 1 0 1 
+Estado.Estado2 0 0 0 0 0 0 0 1 0 0 1 
+Estado.Estado3 0 0 0 0 0 0 1 0 0 0 1 
+Estado.Estado4 0 0 0 0 0 1 0 0 0 0 1 
+Estado.Estado5 0 0 0 0 1 0 0 0 0 0 1 
+Estado.Estado6 0 0 0 1 0 0 0 0 0 0 1 
+Estado.Estado7 0 0 1 0 0 0 0 0 0 0 1 
+Estado.Estado8 0 1 0 0 0 0 0 0 0 0 1 
+Estado.MasCont 1 0 0 0 0 0 0 0 0 0 1 
